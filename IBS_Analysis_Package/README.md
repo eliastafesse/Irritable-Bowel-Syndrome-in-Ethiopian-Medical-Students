@@ -1,5 +1,6 @@
 This repository contains the R Markdown workflow and accompanying resources for the study:  
-**"Prevalence and Predictors of Irritable Bowel Syndrome Among Ethiopian Medical Students."** by Elias Yeshitila, MD, MPhil, is licensed under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/?ref=chooser-v1)
+**"Prevalence and Predictors of Irritable Bowel Syndrome Among Ethiopian Medical Students."** by Elias Yeshitila, MD, MPhil, is licensed under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/?ref=chooser-v1) <img width="64" height="64" alt="image" src="https://github.com/user-attachments/assets/37a4cd8d-9a12-4e5b-b6de-c53c47e62004" />
+
 
 ## Contents
 - `IBS_analysis.Rmd`: Full analysis pipeline
