@@ -133,3 +133,4 @@ IBS prevalence was **6.89%** using Rome IV criteria, lower than previously repor
 ```{r session-info}
 sessionInfo()
 ```
+
