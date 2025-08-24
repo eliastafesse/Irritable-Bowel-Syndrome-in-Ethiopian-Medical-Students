@@ -1,0 +1,129 @@
+---
+title: "Prevalence and Predictors of Irritable Bowel Syndrome Among Ethiopian Medical Students"
+author: "Elias Yeshitila"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Abstract
+
+**Background**  
+Irritable bowel syndrome (IBS) is a common disorder of gut–brain interaction that significantly affects quality of life and is often linked to psychosocial factors. Although global and regional studies suggest higher IBS prevalence among medical students, evidence from Ethiopia remains scarce.
+
+**Objective**  
+To determine the prevalence and predictors of IBS among Ethiopian medical students.
+
+**Methods**  
+A cross-sectional study was conducted from June to August 2024 among undergraduate medical students from 11 Ethiopian universities. Data were collected via a self-administered online questionnaire incorporating the Rome IV criteria for IBS diagnosis, lifestyle and health variables, and the Hospital Anxiety and Depression Scale (HADS). Binary logistic regression clustered by university was used to assess associations between IBS and selected predictors (sex, anxiety, depression). Universities with less than five participants were excluded in a sensitivity analysis.
+
+**Results**  
+Of 290 participants, 20 (6.89%) met the Rome IV criteria for IBS. Anxiety was significantly associated with IBS (OR = 7.25; 95% CI: 2.45–21.43; p < 0.001), while no significant associations were found with sex, depression, or borderline anxiety/depression. A sensitivity analysis excluding universities with less than five participants similarly showed significant association with anxiety. The final model showed acceptable discrimination (AUC = 0.78).
+
+**Conclusion**  
+IBS prevalence among Ethiopian medical students was lower than previously reported locally and internationally, possibly due to the use of stricter diagnostic criteria and contextual factors. Anxiety emerged as a key associated factor, underscoring the need for psychosocial support within medical training programs. Larger, longitudinal studies are warranted to explore additional risk factors and inform targeted interventions.
+
+**Keywords:** Irritable Bowel Syndrome, Medical Students, Ethiopia, Anxiety, Rome IV, Cross-Sectional Study
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(dplyr)
+library(openxlsx)
+library(lmtest)
+library(sandwich)
+library(broom)
+library(pROC)
+```
+
+# Load Data
+
+```{r}
+# Load dataset
+ibs_data <- read.csv("ibs_data.csv")
+file.exists("ibs_data.csv")
+ibs_data$uni <- as.factor(ibs_data$uni)
+ibs_data$IBSdepend_bin <- as.integer(ibs_data$IBSdepend == 1)
+
+ibs_data$SexBinary  <- relevel(factor(ibs_data$SexBinary), ref = "0")
+ibs_data$Depression <- relevel(factor(ibs_data$Depression), ref = "0")
+ibs_data$Anxiety    <- relevel(factor(ibs_data$Anxiety), ref = "0")
+```
+
+# Baseline Characteristics (Counts Only)
+
+```{r}
+baseline_table <- ibs_data %>%
+  group_by(IBSdepend) %>%
+  summarise(across(c(SexBinary, Depression, Anxiety), ~table(.)))
+
+print(table(ibs_data$SexBinary, ibs_data$IBSdepend))
+print(table(ibs_data$Depression, ibs_data$IBSdepend))
+print(table(ibs_data$Anxiety, ibs_data$IBSdepend))
+```
+
+# Logistic Regression Analysis
+
+```{r}
+# Model formula
+final_formula <- IBSdepend_bin ~ Depression + Anxiety + SexBinary
+
+# Main model
+final_model <- glm(final_formula, data = ibs_data, family = binomial)
+clustered_vcov <- vcovCL(final_model, cluster = ibs_data$uni)
+regression_output <- coeftest(final_model, vcov = clustered_vcov)
+
+results_main <- tidy(regression_output) %>%
+  mutate(
+    OR = round(exp(estimate), 2),
+    CI_low = round(exp(estimate - 1.96 * std.error), 2),
+    CI_high = round(exp(estimate + 1.96 * std.error), 2),
+    CI = sprintf("(%.2f, %.2f)", CI_low, CI_high),
+    p = signif(p.value, 3)
+  ) %>%
+  select(term, OR, CI, p)
+
+results_main
+```
+
+# ROC Curve
+
+```{r}
+predicted_probs <- predict(final_model, type = "response")
+roc_obj <- roc(ibs_data$IBSdepend_bin, predicted_probs)
+plot(roc_obj, main = "ROC Curve")
+auc(roc_obj)
+```
+
+# Sensitivity Analysis
+
+```{r}
+uni_counts <- table(ibs_data$uni)
+eligible_unis <- names(uni_counts[uni_counts >= 5])
+ibs_sens <- ibs_data %>% filter(uni %in% eligible_unis)
+
+model_sens <- glm(final_formula, data = ibs_sens, family = binomial)
+vcov_sens <- vcovCL(model_sens, cluster = ibs_sens$uni)
+output_sens <- coeftest(model_sens, vcov = vcov_sens)
+
+results_sens <- tidy(output_sens) %>%
+  mutate(
+    OR = round(exp(estimate), 2),
+    CI_low = round(exp(estimate - 1.96 * std.error), 2),
+    CI_high = round(exp(estimate + 1.96 * std.error), 2),
+    CI = sprintf("(%.2f, %.2f)", CI_low, CI_high),
+    p = signif(p.value, 3)
+  ) %>%
+  select(term, OR, CI, p)
+
+results_sens
+```
+
+# Save Outputs
+
+```{r}
+write.xlsx(results_main, "IBS_logistic_results.xlsx", rowNames = FALSE)
+write.xlsx(results_sens, "IBS_sensitivity_results.xlsx", rowNames = FALSE)
+```
+
+---
