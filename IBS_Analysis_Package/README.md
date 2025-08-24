@@ -1,7 +1,5 @@
-# IBS Prevalence and Predictors Analysis
-
 This repository contains the R Markdown workflow and accompanying resources for the study:  
-**"Prevalence and Predictors of Irritable Bowel Syndrome Among Ethiopian Medical Students."**
+**"Prevalence and Predictors of Irritable Bowel Syndrome Among Ethiopian Medical Students."** by https://www.linkedin.com/in/elias-t-yeshitila-95a42b16a?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B9KfIdTCKSKi%2FSp72DX4WxQ%3D%3D is licensed under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/?ref=chooser-v1)
 
 ## Contents
 - `IBS_analysis.Rmd`: Full analysis pipeline
